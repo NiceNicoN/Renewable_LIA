@@ -52,7 +52,7 @@ void loop() {
   int rd = readAverage(ldrrd);  // Bottom Right
 
   // ======== Control Parameters ========
-  int tol = 1000;  // tolerance for movement (higher = less sensitive)
+  int tol = 20;  // tolerance for movement (higher = less sensitive)
   int step = 2;   // servo movement step
   int avgLight = (lt + rt + ld + rd) / 4;
 
