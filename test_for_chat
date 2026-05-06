@@ -1,0 +1,84 @@
+#include <Stepper.h>
+
+const int HumidityButton = 6;// variables will change:
+const int SprinklerButton1 = 5;  // the number of the pushbutton pin
+const int SprinklerButton2 = 2;  // the number of the pushbutton pin
+const int SprinklerButton3 = 3;  // the number of the pushbutton pin
+int ReadingHumidityValue = 0;  // variable for reading the pushbutton status
+
+int buttonPushCounter1 = 0;  // counter for the number of button presses
+int buttonState1 = 0;        // current state of the button
+int lastButtonState1 = 0;    // previous state of the button
+
+//define Input pins of the Motor
+#define OUTPUT1   9                // Connected to the Blue coloured wire
+#define OUTPUT2   10               // Connected to the Pink coloured wire
+#define OUTPUT3   11               // Connected to the Yellow coloured wire
+#define OUTPUT4   12               // Connected to the Orange coloured wire
+// Define the number of steps per rotation
+const int stepsPerRotation = 2048;  // 28BYJ-48 has 2048 steps per rotation in full step mode as given in data sheet
+// Initialize the stepper motor with the sequence of control pins OUTPUT1, OUTPUT3, OUTPUT2, IN4
+// OUTPUT1 and OUTPUT3 are connected to one coil and OUTPUT2 and OUTPUT4 are connected to one Coil
+Stepper myStepper(stepsPerRotation, OUTPUT1, OUTPUT3, OUTPUT2, OUTPUT4);  
+
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(HumidityButton, INPUT);  // better
+  pinMode(SprinklerButton1, INPUT);
+  pinMode(SprinklerButton2, INPUT);
+  pinMode(SprinklerButton3, INPUT);
+  //pinMode(buttonPin1, INPUT);
+
+  myStepper.setSpeed(15);
+}
+
+void loop() {
+  ReadingHumidityValue = digitalRead(HumidityButton);
+  int b1 = digitalRead(SprinklerButton1);
+  int b2 = digitalRead(SprinklerButton2);
+  int b3 = digitalRead(SprinklerButton3);
+
+  buttonState1 = digitalRead(SprinklerButton1);
+
+  if (buttonState1 != lastButtonState1) {
+    // if the state has changed, increment the counter
+    if (buttonState1 == HIGH) {
+      // if the current state is HIGH then the button went from off to on:
+      buttonPushCounter1++;
+      Serial.println("on");
+      Serial.print("number of button pushes: ");
+      Serial.println(buttonPushCounter1);
+    } else {
+      // if the current state is LOW then the button went from on to off:
+      Serial.println("off");
+    }
+    // Delay a little bit to avoid bouncing
+    delay(50);
+  }
+  // save the current state as the last state, for next time through the loop
+  lastButtonState1 = buttonState1;  
+  
+  if (buttonPushCounter1 % 2 == 0 && digitalRead(HumidityButton) == HIGH) {
+    Serial.println("Curssed");
+    myStepper.step(stepsPerRotation);
+    delay(1000);
+  } 
+  else if (digitalRead(HumidityButton) == HIGH && digitalRead(SprinklerButton2) == HIGH) {
+    // Rotate in One Direction and complete one complete rotation i.e 2048 steps CW
+    Serial.println("Z");
+    myStepper.step(stepsPerRotation);  
+    delay(1000);  // Delay between rotations
+    Serial.println("H");
+    // For Rotation in opposite direction provide the variable to the parameter with negative Sign CCW
+    myStepper.step(-stepsPerRotation);  
+    delay(1000);  // Delay between rotations
+    Serial.println("V");
+  } 
+   else {
+    digitalWrite(OUTPUT1, LOW);
+    digitalWrite(OUTPUT2, LOW);
+    digitalWrite(OUTPUT3, LOW);
+    digitalWrite(OUTPUT4, LOW);
+  }
+}
