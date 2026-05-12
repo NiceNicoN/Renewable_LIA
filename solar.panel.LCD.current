@@ -3,6 +3,8 @@
 
 LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
 
+#define PIN_LIGHT_RELAY 5
+
 const int currentPin = A5;
 int sensitivity = 66;
 int adcValue = 0;
@@ -45,6 +47,8 @@ int readAverage(int pin) {
 
 void setup()
 {
+pinMode(PIN_LIGHT_RELAY, OUTPUT);
+
   Serial.begin(9600);
   lcd.begin(16, 2);
   lcd.print("Current Sensor");
@@ -123,9 +127,13 @@ adcValue = analogRead(currentPin);
 
   // ======== Ignore at Low Light (Night Mode) ========
   if (avgLight < 200) {
+    activateLighting(1);
     Serial.println("Low light detected — Tracker on standby...");
     delay(500);
     return;
+  }
+  else{
+    activateLighting(0);
   }
 
   // ======== Compute Averages ========
@@ -168,4 +176,7 @@ adcValue = analogRead(currentPin);
 
   // ======== Small Delay for Stability ========
   delay(2);
+}
+void activateLighting(bool state){
+  digitalWrite(PIN_LIGHT_RELAY, state);
 }
